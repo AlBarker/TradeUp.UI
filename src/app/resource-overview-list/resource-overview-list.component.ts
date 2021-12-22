@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+import { ResourceModel, ResourceSignalrService } from '../resource-signalr.service';
 
 @Component({
   selector: 'app-resource-overview-list',
@@ -8,16 +9,26 @@ import { Observable } from 'rxjs';
   styleUrls: ['./resource-overview-list.component.scss']
 })
 export class ResourceOverviewListComponent implements OnInit {
-  public resources$ : Observable<any>;
-  constructor(private readonly httpClient: HttpClient) {
-    this.resources$ = this.getResource();
+  public resources$ : Observable<any> | undefined;
+  public resources : ResourceModel[] | undefined;
+  constructor(private readonly httpClient: HttpClient, private readonly signalRService: ResourceSignalrService) {
+    
    }
 
   ngOnInit(): void {
+    this.signalRService.startConnection();
+    this.signalRService.addTranserResourceDataListener();
+    this.getResource();
+    // this.resources = this.signalRService.data;
+    this.resources$ = this.signalRService.data$;
   }
 
-  public getResource() : Observable<any> {
-    return this.httpClient.get('https://localhost:7214/Resource');
+  public getResource() {
+    this.httpClient.get('https://localhost:7214/api/Resource')
+      .pipe(
+        tap((res) => console.log('CASNASD' + res))
+      )
+      .subscribe();
   }
 
 }
